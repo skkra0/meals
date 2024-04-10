@@ -1,6 +1,6 @@
 "use client"
-import { FormEvent, useState, ChangeEventHandler, useEffect } from 'react';
-
+import { FormEvent, useState } from 'react';
+import Image from "next/image";
 const baseURL = "https://www.themealdb.com/api/json/v1/1/";
 
 const getIntersection = function(arrays: string[][]): string[] {
@@ -34,8 +34,13 @@ export default function App() {
         renderMeals = <>
             <h2 className="text-3xl font-bold mb-3">{meal.name}</h2>
             {meal.id ? <div className="mb-3 flex gap-8">
-                <img className="w-72 h-72 inline-block align-top flex-shrink-0 rounded-md"
-                src={meal.img} alt={meal.name} />
+                <Image 
+                    width={500}
+                    height={500}
+                    src={meal.img} 
+                    alt={meal.name} 
+                    className="w-72 h-72 inline-block align-top flex-shrink-0 rounded-md"
+                    />
                 <div className="flex-shrink-0 max-w-56">
                 <h4 className="text-l font-bold">Ingredients:</h4>
                 <ul className="list-disc">
@@ -152,7 +157,7 @@ export default function App() {
                         className="active:bg-amber-700 hover:bg-amber-200 bg-amber-100 border-amber-400 border-2 rounded-md p-1">Search</button>
             </form>
             <div className="mt-3">
-            {notFoundWith.length > 0 ? <h4 className="font-bold">Couldn't find any recipes with: {notFoundWith.join(", ")}</h4> : null}
+            {notFoundWith.length > 0 ? <h4 className="font-bold">Couldn&apos;t find any recipes with: {notFoundWith.join(", ")}</h4> : null}
             {renderMeals}
             </div>
             </div>

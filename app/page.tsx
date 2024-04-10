@@ -9,16 +9,17 @@ const getIntersection = function(arrays: string[][]): string[] {
 
 
 export default function App() {
-    const [ingredient, setIngredient] = useState("");
-    // const [inputsCt, setInputsCt] = useState(1);
+    const [ingredients, setIngredients] = useState<string[]>([]);
+    //const [ingredient, setIngredient] = useState("");
+     const [inputs, setInputs] = useState(1);
 
-    // const getOnChangeHandler = function(key: number) {
-    //     return (e: any) => {
-    //         let i = [...ingredients];
-    //         i[key] = e.target.value;
-    //         setIngredients(i);
-    //     }
-    // }
+    const getOnChangeHandler = function(key: number) {
+        return (e: any) => {
+            let i = [...ingredients];
+            i[key] = e.target.value;
+            setIngredients(i);
+        }
+    }
 
     const [meal, setMeal] = useState<Meal>({
         name: "",
@@ -31,7 +32,7 @@ export default function App() {
     let renderMeals: JSX.Element = <p>Enter ingredients to find a matching recipe</p>;
     if (meal.name) {
         renderMeals = <>
-            <h2 className="text-3xl font-bold mb-3">{meal.name + " " + meal.id}</h2>
+            <h2 className="text-3xl font-bold mb-3">{meal.name}</h2>
             <div className="mb-3 flex gap-8">
                 <img className="w-72 h-72 inline-block align-top flex-shrink-0 rounded-md"
                 src={meal.img} alt={meal.name} />
@@ -39,7 +40,7 @@ export default function App() {
                 <h4 className="text-l font-bold">Ingredients:</h4>
                 <ul className="list-disc">
                     {
-                        meal.ingredients.map((ing, index) => <li key={index}>{ing}</li>)
+                        meal.ingredients.map((ing, index) => <li key={`step.${index}`}>{ing}</li>)
                     }
                 </ul>
                 </div>
@@ -48,7 +49,7 @@ export default function App() {
                 {
                     meal.steps.split("\n").map((step, index) => <p 
                     className="m-2"
-                    key={index}>{step}</p>)
+                    key={`instructions.${index}`}>{step}</p>)
                 }
                 </div>
             </div>
@@ -58,9 +59,11 @@ export default function App() {
 
     const submitHandler = async (e: FormEvent) => {
         e.preventDefault();
-        let filterURL = baseURL + "filter.php?i=";
-        let ing = ingredient.replaceAll(' ', '_')
-        const getIds = async () => {
+        let formattedIngredients = ingredients.map(
+          (ing, i) => ing.replaceAll(' ', '_')
+        ).filter(ing => ing !== '');
+
+        const getIds = async (ing: string) => {
             return fetch(baseURL + `filter.php?i=${ing}`)
                 .then(response => response.json())
                 .then(data => {
@@ -71,8 +74,11 @@ export default function App() {
                     }
                 });
         }
+        
+        const mealIds = await Promise.all(
+          formattedIngredients.map(ing => getIds(ing))
+        ).then(idSets => idSets.length > 0 ? getIntersection(idSets) : []);
 
-        const mealIds = await getIds();
         if (mealIds.length === 0) {
             setMeal(
                 {
@@ -87,6 +93,7 @@ export default function App() {
         } else {
             console.log(mealIds);
         }
+        
         const id = mealIds[Math.floor(Math.random() * mealIds.length)];
         fetch(baseURL + `lookup.php?i=${id}`)
             .then(response => response.json())
@@ -108,8 +115,6 @@ export default function App() {
                 }
                 setMeal(meal);
             });
-
-
     }
     return (
         <>
@@ -120,21 +125,26 @@ export default function App() {
             <div className="main bg-slate-50 text-black pt-3 pl-5 pr-5 mb-0 min-h-screen">
             <form onSubmit={submitHandler}
                   className="inline-block">
-                <div>
-                    
-                    <input type="text"
-                           value={ingredient}
-                           onChange={(e) => setIngredient(e.target.value)}
-                           placeholder="Enter an ingredient..."
-                           className="border-slate-400 border-2 rounded-md mb-2"/>
+                <div className="flex flex-wrap gap-2">
+                    {Array.from({length: inputs}, (_, i) => (
+                        <>
+                          <input
+                            key={`input.${i}`}
+                            type="text"
+                            value={ingredients[i]}
+                            onChange={getOnChangeHandler(i)}
+                            placeholder="Enter an ingredient..."
+                            className="focus:outline-none focus:border-blue-500 focus:bg-cyan-50 border-amber-900 border-b-2 bg-inherit mb-2 max-w-44"/>
+                        </>
+                    ))}
                     <button
                         type="button"
-                        //onClick={addInput}
-                        className="border-slate-400 border-2 w-8 h-8 ml-2 rounded-md"
+                        onClick={() => {setInputs(inputs + 1)}}
+                        className="active:bg-slate-500 bg-amber-100 border-amber-400 border-2 w-8 h-8 ml-1 rounded-md"
                     >+</button>
                 </div>
                 <button type="submit"
-                        className="border-slate-400 border-2 h-8 rounded-md p-1">Search</button>
+                        className="active:bg-slate-500 bg-amber-100 border-amber-400 border-2 h-8 rounded-md p-1">Search</button>
             </form>
             <div className="mt-5">{renderMeals}</div>
             </div>

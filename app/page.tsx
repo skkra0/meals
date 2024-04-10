@@ -9,9 +9,8 @@ const getIntersection = function(arrays: string[][]): string[] {
 
 
 export default function App() {
-    const [ingredients, setIngredients] = useState<string[]>([]);
-    //const [ingredient, setIngredient] = useState("");
-     const [inputs, setInputs] = useState(1);
+    const [ingredients, setIngredients] = useState<string[]>([""]);
+    const [inputs, setInputs] = useState(1);
 
     const getOnChangeHandler = function(key: number) {
         return (e: any) => {
@@ -29,7 +28,8 @@ export default function App() {
         steps: "", 
     });
 
-    let renderMeals: JSX.Element = <p>Enter ingredients to find a matching recipe</p>;
+    const [notFoundWith, setNotFoundWith] = useState<string[]>([]);
+    let renderMeals: JSX.Element = <p>Enter ingredients to find a recipe that uses them</p>;
     if (meal.name) {
         renderMeals = <>
             <h2 className="text-3xl font-bold mb-3">{meal.name}</h2>
@@ -59,10 +59,11 @@ export default function App() {
 
     const submitHandler = async (e: FormEvent) => {
         e.preventDefault();
+        console.log(ingredients)
         let formattedIngredients = ingredients.map(
           (ing, i) => ing.replaceAll(' ', '_')
-        ).filter(ing => ing !== '');
-
+        );
+        const notFoundIngredients : string[] = [];
         const getIds = async (ing: string) => {
             return fetch(baseURL + `filter.php?i=${ing}`)
                 .then(response => response.json())
@@ -70,6 +71,7 @@ export default function App() {
                     if (data.meals !== null) {
                         return data.meals.map((meal: any) => meal.idMeal);
                     } else {
+                        notFoundIngredients.push(ing);
                         return [];
                     }
                 });
@@ -77,9 +79,11 @@ export default function App() {
         
         const mealIds = await Promise.all(
           formattedIngredients.map(ing => getIds(ing))
-        ).then(idSets => idSets.length > 0 ? getIntersection(idSets) : []);
+        ).then(idSets => idSets.filter(id => id.length > 0))
+        .then(idSets => idSets.length > 0 ? getIntersection(idSets) : []);
 
         if (mealIds.length === 0) {
+            setNotFoundWith([]);
             setMeal(
                 {
                     name: "No meals found with those ingredients!",
@@ -107,12 +111,13 @@ export default function App() {
                     ingredients: [],
                 };
                 for (let i = 1; i <= 20; i++) {
-                    if (mealData[`strIngredient${i}`] && mealData[`strMeasure${i}`]) {
+                    if (mealData[`strIngredient${i}`]) {
                         meal.ingredients.push(
                             mealData[`strMeasure${i}`] + " " + mealData[`strIngredient${i}`]
                         );
                     }
                 }
+                setNotFoundWith(notFoundIngredients);
                 setMeal(meal);
             });
     }
@@ -122,10 +127,10 @@ export default function App() {
             <h1 className="text-4xl">What should I cook tonight?</h1>
             </div>
             <div className="bg-gradient-to-r  from-yellow-500 to-red-700 h-2"></div>
-            <div className="main bg-slate-50 text-black pt-3 pl-5 pr-5 mb-0 min-h-screen">
+            <div className="main bg-slate-50 text-black pt-3 pl-5 pr-5 mb-0 text-lg">
             <form onSubmit={submitHandler}
                   className="inline-block">
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-3 mb-3">
                     {Array.from({length: inputs}, (_, i) => (
                         <>
                           <input
@@ -140,13 +145,16 @@ export default function App() {
                     <button
                         type="button"
                         onClick={() => {setInputs(inputs + 1)}}
-                        className="active:bg-slate-500 bg-amber-100 border-amber-400 border-2 w-8 h-8 ml-1 rounded-md"
-                    >+</button>
+                        className="active:bg-amber-700 hover:bg-amber-200 bg-amber-100 border-amber-400 align-middle border-2 rounded-md p-1"
+                    >Add another ingredient</button>
                 </div>
                 <button type="submit"
-                        className="active:bg-slate-500 bg-amber-100 border-amber-400 border-2 h-8 rounded-md p-1">Search</button>
+                        className="active:bg-amber-700 hover:bg-amber-200 bg-amber-100 border-amber-400 border-2 rounded-md p-1">Search</button>
             </form>
-            <div className="mt-5">{renderMeals}</div>
+            <div className="mt-3">
+            {notFoundWith.length > 0 ? <h4 className="font-bold">Couldn't find any recipes with: {notFoundWith.join(", ")}</h4> : null}
+            {renderMeals}
+            </div>
             </div>
         </>
     )

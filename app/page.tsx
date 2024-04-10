@@ -33,7 +33,7 @@ export default function App() {
     if (meal.name) {
         renderMeals = <>
             <h2 className="text-3xl font-bold mb-3">{meal.name}</h2>
-            <div className="mb-3 flex gap-8">
+            {meal.id ? <div className="mb-3 flex gap-8">
                 <img className="w-72 h-72 inline-block align-top flex-shrink-0 rounded-md"
                 src={meal.img} alt={meal.name} />
                 <div className="flex-shrink-0 max-w-56">
@@ -52,7 +52,7 @@ export default function App() {
                     key={`instructions.${index}`}>{step}</p>)
                 }
                 </div>
-            </div>
+            </div> : null}
             
         </>
     }

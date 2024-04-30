@@ -33,7 +33,7 @@ export default function App() {
     if (meal.name) {
         renderMeals = <>
             <h2 className="text-3xl font-bold mb-3">{meal.name}</h2>
-            {meal.id ? <div className="mb-3 flex gap-8">
+            {meal.id ? <div className="mb-3 flex gap-8 flex-wrap md:flex-nowrap">
                 <Image 
                     width={500}
                     height={500}
@@ -135,7 +135,7 @@ export default function App() {
             <div className="main bg-slate-50 text-black pt-3 pl-5 pr-5 mb-0 text-lg">
             <form onSubmit={submitHandler}
                   className="inline-block">
-                <div className="flex flex-wrap gap-3 mb-3">
+                <div className="gap-3 mb-3">
                     {Array.from({length: inputs}, (_, i) => (
                         <>
                           <input
@@ -144,7 +144,7 @@ export default function App() {
                             value={ingredients[i]}
                             onChange={getOnChangeHandler(i)}
                             placeholder="Enter an ingredient..."
-                            className="focus:outline-none focus:border-blue-500 focus:bg-cyan-50 border-amber-900 border-b-2 bg-inherit mb-2 max-w-44"/>
+                            className="focus:outline-none focus:border-blue-500 focus:bg-cyan-50 border-amber-900 border-b-2 bg-inherit mb-2 mr-1 max-w-44"/>
                         </>
                     ))}
                     <button
